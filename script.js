@@ -1,4 +1,4 @@
-script.js
+//script.js
 let students = [];
 let deletedControlNumbers = [];
 let currentFilter = {
