@@ -196,14 +196,14 @@ function getFilteredStudents() {
     });
 }
 
-// Update display
+
 function updateDisplay() {
     const filteredStudents = getFilteredStudents();
     updateTable(filteredStudents);
     updateStatistics(filteredStudents);
 }
 
-// Calculate statistics
+
 function calculateStats(studentsData) {
     const totalMembers = studentsData.length;
     const totalRevenue = studentsData.reduce((sum, student) => sum + (student.membershipFee || 0), 0);
@@ -228,7 +228,7 @@ function calculateStats(studentsData) {
     };
 }
 
-// Update statistics
+
 function updateStatistics(filteredStudents = students) {
     const stats = calculateStats(filteredStudents);
     
@@ -240,7 +240,7 @@ function updateStatistics(filteredStudents = students) {
     document.getElementById('fourthYearCount').textContent = stats.yearCounts['4th Year'];
 }
 
-// Update table
+
 function updateTable(filteredStudents = students) {
     const tbody = document.getElementById('membersTableBody');
     tbody.innerHTML = '';
@@ -334,7 +334,7 @@ async function updateStudent(e) {
             return;
         }
         
-        // search and update student
+       
         const studentIndex = students.findIndex(s => s.id == id);
         if (studentIndex !== -1) {
             students[studentIndex] = { ...students[studentIndex], ...updatedData };
@@ -360,7 +360,7 @@ function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
 }
 
-// Delete student
+
 function deleteStudent(id) {
     if (!confirm('Are you sure you want to delete this student?')) return;
     
@@ -387,7 +387,7 @@ function deleteStudent(id) {
     }
 }
 
-// Delete all members
+
 function deleteAllMembers() {
     if (!confirm('Are you sure you want to delete ALL students? This action cannot be undone!')) return;
     
@@ -402,7 +402,7 @@ function deleteAllMembers() {
     }
 }
 
-// Export data
+
 function exportData() {
     const filteredStudents = getFilteredStudents();
     
