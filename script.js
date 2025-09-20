@@ -1,17 +1,21 @@
-// script.js
 let students = [];
 let deletedControlNumbers = [];
 let currentFilter = {
     search: '',
-    year: '',
-    dateFrom: '',
-    dateTo: ''
+    year: ''
 };
 let isSubmitting = false;
 
+
+const STORAGE_KEYS = {
+    STUDENTS: 'membership_students',
+    DELETED_CONTROL_NUMBERS: 'membership_deleted_control_numbers',
+    THEME: 'membership_theme'
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     loadTheme();
-    loadStudents();
+    loadStudentsFromStorage();
     initializeEventListeners();
 });
 
@@ -19,47 +23,68 @@ function initializeEventListeners() {
     const registrationForm = document.getElementById('registrationForm');
     const editForm = document.getElementById('editForm');
     
-
     registrationForm.removeEventListener('submit', registerStudent);
     registrationForm.addEventListener('submit', registerStudent);
     
     editForm.removeEventListener('submit', updateStudent);
     editForm.addEventListener('submit', updateStudent);
     
-  
     document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             searchStudents();
         }
     });
 }
+// Local Storage Functions
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+        localStorage.setItem(STORAGE_KEYS.DELETED_CONTROL_NUMBERS, JSON.stringify(deletedControlNumbers));
+        return true;
+    } catch (error) {
+        console.error('Failed to save to localStorage:', error);
+        return false;
+    }
+}
 
+function loadStudentsFromStorage() {
+    try {
+        const studentsData = localStorage.getItem(STORAGE_KEYS.STUDENTS);
+        const deletedData = localStorage.getItem(STORAGE_KEYS.DELETED_CONTROL_NUMBERS);
+        
+        if (studentsData) {
+            students = JSON.parse(studentsData);
+        }
+        if (deletedData) {
+            deletedControlNumbers = JSON.parse(deletedData);
+        }
+        
+        updateDisplay();
+        return true;
+    } catch (error) {
+        console.error('Failed to load from localStorage:', error);
+        return false;
+    }
+}
 
 function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     
     document.documentElement.setAttribute('data-theme', newTheme);
-    window.currentTheme = newTheme;
+    localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
     
     const themeButton = document.querySelector('.theme-toggle');
-    themeButton.textContent = newTheme === 'dark' ? '☀️' : '🌙 ';
+    themeButton.textContent = newTheme === 'dark' ? '☀️' : '🌙';
 }
 
 function loadTheme() {
-    const savedTheme = window.currentTheme || 'light';
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     
     const themeButton = document.querySelector('.theme-toggle');
-    themeButton.textContent = savedTheme === 'dark' ? '☀️ ' : '🌙 ';
+    themeButton.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 }
-
-
-function loadStudents() {
-    
-    updateDisplay();
-}
-
 
 function generateControlNumber() {
     const now = new Date();
@@ -82,11 +107,9 @@ function generateControlNumber() {
     return controlNumber;
 }
 
-
 async function registerStudent(e) {
     e.preventDefault();
     
-
     if (isSubmitting) {
         return;
     }
@@ -99,20 +122,18 @@ async function registerStudent(e) {
     try {
         const studentNumber = document.getElementById('studentNumber').value.trim();
         
- 
         if (!studentNumber) {
             showAlert('Student number is required!', 'error');
             return;
         }
         
-      
         if (students.some(student => student.studentNumber === studentNumber)) {
             showAlert('Student number already exists!', 'error');
             return;
         }
         
         const studentData = {
-            id: Date.now() + Math.random(), 
+            id: Date.now() + Math.random(),
             name: document.getElementById('studentName').value.trim(),
             studentNumber: studentNumber,
             schoolYear: document.getElementById('schoolYear').value,
@@ -126,15 +147,12 @@ async function registerStudent(e) {
             return;
         }
         
-        
         students.push(studentData);
-        
-       
+        saveToLocalStorage();
         updateDisplay();
         
-
         document.getElementById('registrationForm').reset();
-        document.getElementById('membershipFee').value = '20'; // Reset to default
+        document.getElementById('membershipFee').value = '20';
         
         showAlert(`Student registered successfully! Control Number: ${studentData.controlNumber}`, 'success');
         
@@ -160,17 +178,13 @@ function clearSearch() {
     updateDisplay();
 }
 
-
 function applyFilters() {
     currentFilter.year = document.getElementById('yearFilter').value;
-    currentFilter.dateFrom = document.getElementById('dateFrom').value;
-    currentFilter.dateTo = document.getElementById('dateTo').value;
     updateDisplay();
 }
 
 function getFilteredStudents() {
     return students.filter(student => {
-   
         if (currentFilter.search) {
             const searchTerm = currentFilter.search;
             if (!student.name.toLowerCase().includes(searchTerm) && 
@@ -180,15 +194,7 @@ function getFilteredStudents() {
             }
         }
         
-       
         if (currentFilter.year && student.schoolYear !== currentFilter.year) {
-            return false;
-        }
-       
-        if (currentFilter.dateFrom && student.registrationDate < currentFilter.dateFrom) {
-            return false;
-        }
-        if (currentFilter.dateTo && student.registrationDate > currentFilter.dateTo) {
             return false;
         }
         
@@ -196,13 +202,11 @@ function getFilteredStudents() {
     });
 }
 
-
 function updateDisplay() {
     const filteredStudents = getFilteredStudents();
     updateTable(filteredStudents);
     updateStatistics(filteredStudents);
 }
-
 
 function calculateStats(studentsData) {
     const totalMembers = studentsData.length;
@@ -228,7 +232,6 @@ function calculateStats(studentsData) {
     };
 }
 
-
 function updateStatistics(filteredStudents = students) {
     const stats = calculateStats(filteredStudents);
     
@@ -239,7 +242,6 @@ function updateStatistics(filteredStudents = students) {
     document.getElementById('thirdYearCount').textContent = stats.yearCounts['3rd Year'];
     document.getElementById('fourthYearCount').textContent = stats.yearCounts['4th Year'];
 }
-
 
 function updateTable(filteredStudents = students) {
     const tbody = document.getElementById('membersTableBody');
@@ -275,7 +277,6 @@ function updateTable(filteredStudents = students) {
     });
 }
 
-
 function editStudent(id) {
     const student = students.find(s => s.id == id);
     if (!student) {
@@ -295,7 +296,6 @@ function editStudent(id) {
 async function updateStudent(e) {
     e.preventDefault();
     
-    
     if (isSubmitting) {
         return;
     }
@@ -309,13 +309,11 @@ async function updateStudent(e) {
         const id = document.getElementById('editId').value;
         const newStudentNumber = document.getElementById('editNumber').value.trim();
         
-
         if (!newStudentNumber) {
             showAlert('Student number is required!', 'error');
             return;
         }
         
-
         if (students.some(student => student.studentNumber === newStudentNumber && student.id != id)) {
             showAlert('Student number already exists!', 'error');
             return;
@@ -328,17 +326,16 @@ async function updateStudent(e) {
             membershipFee: parseFloat(document.getElementById('editFee').value) || 0
         };
         
-     
         if (!updatedData.name || !updatedData.schoolYear) {
             showAlert('Please fill in all required fields!', 'error');
             return;
         }
         
-       
         const studentIndex = students.findIndex(s => s.id == id);
         if (studentIndex !== -1) {
             students[studentIndex] = { ...students[studentIndex], ...updatedData };
             
+            saveToLocalStorage();
             updateDisplay();
             closeEditModal();
             showAlert('Student updated successfully!', 'success');
@@ -360,7 +357,6 @@ function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
 }
 
-
 function deleteStudent(id) {
     if (!confirm('Are you sure you want to delete this student?')) return;
     
@@ -369,13 +365,13 @@ function deleteStudent(id) {
         if (studentIndex !== -1) {
             const deletedStudent = students[studentIndex];
             
-            
             if (deletedStudent.controlNumber) {
                 deletedControlNumbers.push(deletedStudent.controlNumber);
                 deletedControlNumbers.sort();
             }
             
             students.splice(studentIndex, 1);
+            saveToLocalStorage();
             updateDisplay();
             showAlert('Student deleted successfully!', 'success');
         } else {
@@ -387,13 +383,13 @@ function deleteStudent(id) {
     }
 }
 
-
 function deleteAllMembers() {
     if (!confirm('Are you sure you want to delete ALL students? This action cannot be undone!')) return;
     
     try {
         students = [];
         deletedControlNumbers = [];
+        saveToLocalStorage();
         updateDisplay();
         showAlert('All students deleted successfully!', 'success');
     } catch (error) {
@@ -403,46 +399,140 @@ function deleteAllMembers() {
 }
 
 
-function exportData() {
+function saveDataFile() {
     const filteredStudents = getFilteredStudents();
     
     if (filteredStudents.length === 0) {
-        showAlert('No data to export!', 'error');
+        showAlert('No data to save!', 'error');
         return;
     }
     
     try {
-        let csvContent = 'Control Number,Name,Student Number,School Year,Membership Fee,Registration Date\n';
+        const dataToSave = {
+            students: filteredStudents,
+            deletedControlNumbers: deletedControlNumbers,
+            exportDate: new Date().toISOString(),
+            totalStudents: filteredStudents.length
+        };
         
-        filteredStudents.forEach(student => {
-            const controlNumber = student.controlNumber || 'N/A';
-            const name = (student.name || 'N/A').replace(/"/g, '""'); 
-            const studentNumber = student.studentNumber || 'N/A';
-            const schoolYear = student.schoolYear || 'N/A';
-            const membershipFee = student.membershipFee || 0;
-            const registrationDate = student.registrationDate || 'N/A';
-            
-            csvContent += `"${controlNumber}","${name}","${studentNumber}","${schoolYear}","${membershipFee}","${registrationDate}"\n`;
-        });
+        const dataStr = JSON.stringify(dataToSave, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
         
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `student_members_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
+        const url = URL.createObjectURL(dataBlob);
+        link.href = url;
+        link.download = `membership_data_${new Date().toISOString().split('T')[0]}.json`;
+        link.style.display = 'none';
+        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        showAlert('Data exported successfully!', 'success');
+        showAlert('Data file saved successfully!', 'success');
     } catch (error) {
-        console.error('Export error:', error);
-        showAlert('Export failed. Please try again.', 'error');
+        console.error('Save file error:', error);
+        showAlert('Failed to save file. Please try again.', 'error');
     }
 }
 
+function loadDataFile() {
+    document.getElementById('fileInput').click();
+}
+
+function handleFileLoad(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.type !== 'application/json') {
+        showAlert('Please select a valid JSON file!', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            if (data.students && Array.isArray(data.students)) {
+                if (confirm('This will replace all current data. Continue?')) {
+                    students = data.students;
+                    deletedControlNumbers = data.deletedControlNumbers || [];
+                    
+                    saveToLocalStorage();
+                    updateDisplay();
+                    showAlert(`Successfully loaded ${data.students.length} students!`, 'success');
+                }
+            } else {
+                showAlert('Invalid file format!', 'error');
+            }
+        } catch (error) {
+            console.error('File load error:', error);
+            showAlert('Failed to load file. Invalid format.', 'error');
+        }
+    };
+    
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+
+function backupData() {
+    try {
+        const backupData = {
+            students: students,
+            deletedControlNumbers: deletedControlNumbers,
+            backupDate: new Date().toISOString()
+        };
+        
+        localStorage.setItem('membership_backup', JSON.stringify(backupData));
+        showAlert('Data backed up successfully!', 'success');
+    } catch (error) {
+        console.error('Backup error:', error);
+        showAlert('Backup failed. Please try again.', 'error');
+    }
+}
+
+function restoreData() {
+    try {
+        const backupData = localStorage.getItem('membership_backup');
+        if (!backupData) {
+            showAlert('No backup data found!', 'error');
+            return;
+        }
+        
+        if (confirm('This will replace all current data with backup. Continue?')) {
+            const data = JSON.parse(backupData);
+            students = data.students || [];
+            deletedControlNumbers = data.deletedControlNumbers || [];
+            
+            saveToLocalStorage();
+            updateDisplay();
+            showAlert('Data restored from backup successfully!', 'success');
+        }
+    } catch (error) {
+        console.error('Restore error:', error);
+        showAlert('Restore failed. Please try again.', 'error');
+    }
+}
+
+function clearStorage() {
+    if (!confirm('This will permanently delete all stored data. Continue?')) return;
+    
+    try {
+        localStorage.removeItem(STORAGE_KEYS.STUDENTS);
+        localStorage.removeItem(STORAGE_KEYS.DELETED_CONTROL_NUMBERS);
+        localStorage.removeItem('membership_backup');
+        
+        students = [];
+        deletedControlNumbers = [];
+        updateDisplay();
+        showAlert('Storage cleared successfully!', 'success');
+    } catch (error) {
+        console.error('Clear storage error:', error);
+        showAlert('Failed to clear storage. Please try again.', 'error');
+    }
+}
 
 function showAlert(message, type) {
     const alertId = type === 'success' ? 'successAlert' : 'errorAlert';
@@ -452,18 +542,15 @@ function showAlert(message, type) {
         alertElement.textContent = message;
         alertElement.style.display = 'block';
         
-     
         if (alertElement.timeoutId) {
             clearTimeout(alertElement.timeoutId);
         }
         
-    
         alertElement.timeoutId = setTimeout(() => {
             alertElement.style.display = 'none';
         }, 5000);
     }
 }
-
 
 window.onclick = function(event) {
     const modal = document.getElementById('editModal');
@@ -472,39 +559,15 @@ window.onclick = function(event) {
     }
 }
 
-
 document.addEventListener('keydown', function(e) {
-   
     if (e.key === 'Escape') {
         closeEditModal();
     }
     
-
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        exportData();
+        saveDataFile();
     }
 });
 
-
-function validateStudentNumber(studentNumber) {
-  
-    return studentNumber && studentNumber.trim().length > 0;
-}
-
-function validateName(name) {
-    return name && name.trim().length >= 2;
-}
-
-function validateFee(fee) {
-    return !isNaN(fee) && fee >= 0;
-}
-
-function autoSave() {
-    
-}
-
-console.log('Student Membership System loaded successfully!');
-
-
-
+console.log('Student Membership System with Local Storage loaded successfully!');
