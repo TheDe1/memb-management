@@ -1,6 +1,6 @@
 :root {
     --bg-primary: #ffffff;
-    --bg-secondary: rgba(0, 123, 245, 0.8)      ;
+    --bg-secondary: rgba(0, 123, 245, 0.8);
     --bg-card: #ffffff;
     --text-primary: #333333;
     --text-secondary: #666666;
@@ -378,12 +378,6 @@ tbody tr:hover {
     flex-wrap: wrap;
 }
 
-.date-range {
-    display: flex;
-    gap: 0.5rem;
-    align-items: end;
-}
-
 .modal {
     display: none;
     position: fixed;
@@ -452,7 +446,14 @@ tbody tr:hover {
     font-weight: 600;
 }
 
-/* Responsive*/
+.backup-section {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
     .main-content {
         grid-template-columns: 1fr;
@@ -465,10 +466,6 @@ tbody tr:hover {
     .filter-controls {
         flex-direction: column;
         align-items: stretch;
-    }
-
-    .date-range {
-        flex-direction: column;
     }
 
     .header h1 {
