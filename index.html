@@ -96,20 +96,19 @@
                         <option value="4th Year">4th Year</option>
                     </select>
                 </div>
-                <div class="date-range">
-                    <div class="form-group">
-                        <label for="dateFrom">From Date</label>
-                        <input type="date" id="dateFrom" onchange="applyFilters()">
-                    </div>
-                    <div class="form-group">
-                        <label for="dateTo">To Date</label>
-                        <input type="date" id="dateTo" onchange="applyFilters()">
-                    </div>
-                </div>
-                <button class="btn" onclick="exportData()">Export Data</button>
+                <button class="btn" onclick="saveDataFile()">Save Data File</button>
+                <button class="btn btn-success" onclick="loadDataFile()">Load Data File</button>
+                <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileLoad(event)">
                 <button class="btn btn-danger" onclick="deleteAllMembers()">Delete All Members</button>
             </div>
+            <div class="backup-section">
+                <button class="btn btn-warning" onclick="backupData()">Backup to Storage</button>
+                <button class="btn" onclick="restoreData()">Restore from Storage</button>
+                <button class="btn btn-danger" onclick="clearStorage()">Clear Storage</button>
+            </div>
         </div>
+
+
         <div class="members-table">
             <div class="table-header">
                 <h3>Registered Members</h3>
@@ -169,7 +168,4 @@
 
     <script src="script.js"></script>
 </body>
-
 </html>
-
-
